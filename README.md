@@ -14,7 +14,7 @@ JWT authentication (JSON Web Token authentication) is a popular user authenticat
 - Required NuGet Packages (System.IdentityModel.Tokens.Jwt, Microsoft.AspNetCore.Authentication.JwtBearer)
 
 ## 🛠 Configuration Setup
-- In appsetting.json, we must defind
+- In appsetting.json, we must defind 
 ```
 "AppSettings": {
   "Token": "your-256-bit-secret-key",
@@ -22,6 +22,8 @@ JWT authentication (JSON Web Token authentication) is a popular user authenticat
   "Audience": "YourAppUsers"
 }
 ```
+ to store authenticated configuration values
+
 ## 📁 Project Structure
 
 ```
