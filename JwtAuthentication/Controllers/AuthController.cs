@@ -1,6 +1,7 @@
 ﻿using JwtAuthentication.Entity;
 using JwtAuthentication.Models;
 using JwtAuthentication.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -36,6 +37,20 @@ namespace JwtAuthentication.Controllers
                 return BadRequest("Invalid username or password");
             }
             return Ok(token);
+        }
+
+        [Authorize]
+        [HttpGet]
+        public IActionResult AuthenticatedOnlyEndpoint()
+        {
+            return Ok("You are authenticated");
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpGet("admin-only")]
+        public IActionResult AdminOnlyEndpoint()
+        {
+            return Ok("You are Admin");
         }
     }
 }

@@ -61,8 +61,8 @@ namespace JwtAuthentication.Services
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Name, user.Username),
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
-
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.Role, user.Role) // Thêm claim cho vai trò của người dùng
             };
             var secret_key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(_configuration.GetValue<string>("AppSettings:Token")!));
             var creds = new SigningCredentials(secret_key, SecurityAlgorithms.HmacSha512);      // dùng thuật toán HmacSha512 để ký token
