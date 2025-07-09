@@ -9,7 +9,6 @@ JWT authentication (JSON Web Token authentication) is a popular user authenticat
 ## 🌟  Main Features 
 - Register new user
 - Login with authorized & authenticated user account
-- Logout
 
 ## 📌 Prerequisite
 - .NET 9 SDK
