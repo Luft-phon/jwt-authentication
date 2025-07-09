@@ -29,7 +29,7 @@ namespace JwtAuthentication.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<ActionResult<string>> Login(UserDTO dto) // Fixed return type to Task<ActionResult<string>>
+        public async Task<ActionResult<TokenResponseDTO>> Login(UserDTO dto) // Fixed return type to Task<ActionResult<string>>
         {
             var token = await _userService.LoginAsync(dto);
             if (token  == null)
@@ -51,6 +51,17 @@ namespace JwtAuthentication.Controllers
         public IActionResult AdminOnlyEndpoint()
         {
             return Ok("You are Admin");
+        }
+
+        [HttpPost("refresh-token")]
+        public async Task<ActionResult<TokenResponseDTO>> RefreshToken(RefreshTokenRequestDTO dto)
+        {
+            var token = await _userService.RefreshTokenAsync(dto);
+            if (token == null || token.AccessToken is null || token.RefreshToken is null)
+            {
+                return Unauthorized("Invalid refresh token or token expired");
+            }
+            return Ok(token);
         }
     }
 }

@@ -7,6 +7,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.JSInterop.Infrastructure;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 
 namespace JwtAuthentication.Services
 {
@@ -36,14 +37,13 @@ namespace JwtAuthentication.Services
             await _context.SaveChangesAsync();  
             return user;
         }
-        public async Task<string> LoginAsync(UserDTO dto)
+        public async Task<TokenResponseDTO> LoginAsync(UserDTO dto)
         {
             var users = await _context.Users.FirstOrDefaultAsync(u => u.Username == dto.UserName); // Check if the user exists
             if (users == null)
             {
                 return null;
             }
-            string token;
 
             // Verify the hashed password
             var passwordHasher = new PasswordHasher<User>();
@@ -53,7 +53,13 @@ namespace JwtAuthentication.Services
                 return null;
             }
 
-            return token = CreateToken(users);
+            var response = new TokenResponseDTO
+            {
+                AccessToken = CreateToken(users),
+                RefreshToken = await GenerateAndSaveToken(users)
+            };
+
+            return response;
         }
 
         private string CreateToken(User user)
@@ -76,6 +82,46 @@ namespace JwtAuthentication.Services
             return new JwtSecurityTokenHandler().WriteToken(tokenDescriptor);  //chuyển token thành string
         }
 
+        private string GenerateRefreshToken()
+        {
+            var randomNumber = new byte[32];
+            using var rng = RandomNumberGenerator.Create();
+            rng.GetBytes(randomNumber);
 
+            return Convert.ToBase64String(randomNumber); // Chuyển đổi mảng byte thành chuỗi Base64
+        }
+        private async Task<string> GenerateAndSaveToken(User user)
+        {
+            var refreshToken = GenerateRefreshToken();
+            user.RefreshToken = refreshToken;
+            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
+            await _context.SaveChangesAsync();
+            return refreshToken;
+        }
+
+        private async Task<User?> ValidateRefreshToken(Guid userId, string refreshToken)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user is null || user.RefreshToken != refreshToken 
+                || user.RefreshTokenExpiryTime <= DateTime.UtcNow)
+            {
+                return null;
+            }
+            return user;
+        }
+        public async Task<TokenResponseDTO?> RefreshTokenAsync(RefreshTokenRequestDTO dto)
+        {
+            var user = await ValidateRefreshToken(dto.UserID, dto.RefreshToken);
+            if (user is null)
+            {
+                return null;
+            }
+            var response = new TokenResponseDTO
+            {
+                AccessToken = CreateToken(user),
+                RefreshToken = await GenerateAndSaveToken(user)
+            };
+            return response;
+        }
     }
 }
